@@ -36,4 +36,11 @@ public class Doctor {
 
     @Enumerated(EnumType.STRING)
     private Speciality speciality;
+
+//    @Override
+//    public String toString() {
+//        return "Doctor{" +
+//                "docName='" + docName + '\'' +
+//                '}';
+//    }
 }

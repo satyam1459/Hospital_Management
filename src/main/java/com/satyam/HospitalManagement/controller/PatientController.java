@@ -1,6 +1,5 @@
 package com.satyam.HospitalManagement.controller;
 
-import com.satyam.HospitalManagement.model.Doctor;
 import com.satyam.HospitalManagement.model.Patient;
 import com.satyam.HospitalManagement.service.PatientService;
 import jakarta.validation.Valid;

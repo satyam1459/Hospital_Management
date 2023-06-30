@@ -1,7 +1,6 @@
 package com.satyam.HospitalManagement.service;
 
 import com.satyam.HospitalManagement.model.City;
-import com.satyam.HospitalManagement.model.Doctor;
 import com.satyam.HospitalManagement.model.Patient;
 import com.satyam.HospitalManagement.repository.DoctorRepo;
 import com.satyam.HospitalManagement.repository.PatientRepo;
@@ -9,6 +8,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class PatientService {
@@ -34,26 +37,46 @@ public class PatientService {
     }
 
     public String suggestDoctor(Long patientId) {
-        Patient patient = patientRepo.findById(patientId).get();
+        Patient patient = patientRepo.findById(patientId).orElse(null);
+        if (patient == null) {
+            return "Patient not found";
+        }
+
         String cityName = patient.getCity();
-        if(!isCityExist(cityName)){
+        if (!isCityExist(cityName)) {
             return "We are still waiting to expand your location";
         }
-        String symptom = patient.getSymptom();
-        if(StringUtils.containsIgnoreCase(symptom,"ear") ||StringUtils.containsIgnoreCase(symptom,"nose") || StringUtils.containsIgnoreCase(symptom,"throat")){
-            return doctorRepo.findBySpeciality("ENT");
+
+        String symptom = patient.getSymptom().toLowerCase();
+        Map<String, String> specialities = new HashMap<>();
+        specialities.put("ear", "ENT");
+        specialities.put("nose", "ENT");
+        specialities.put("throat", "ENT");
+        specialities.put("women reproductive", "Gynaecology");
+        specialities.put("dysmenorrhea", "Gynaecology");
+        specialities.put("pelvic", "Gynaecology");
+        specialities.put("skin", "Dermatology");
+        specialities.put("face", "Dermatology");
+        specialities.put("beauty", "Dermatology");
+        specialities.put("bones", "Orthopedic");
+
+        System.out.println(specialities);
+        for (Map.Entry<String, String> entry : specialities.entrySet()) {
+            String symptoms = entry.getKey();
+            String speciality = entry.getValue();
+
+            if (StringUtils.containsIgnoreCase(symptom, symptoms)) {
+                List<String> doctors = doctorRepo.findBySpeciality(speciality);
+                if (doctors.isEmpty()) {
+                    return "No doctor available for " + speciality;
+                }
+                return "Suggested doctor(s) for " + speciality + ": " + doctors;
+            }
         }
-        if(StringUtils.containsIgnoreCase(symptom,"women reproductive") ||StringUtils.containsIgnoreCase(symptom,"Dysmenorrhea") || StringUtils.containsIgnoreCase(symptom,"pelvic")){
-            return doctorRepo.findBySpeciality("Gynaecology");
-        }
-        if(StringUtils.containsIgnoreCase(symptom,"skin") ||StringUtils.containsIgnoreCase(symptom,"face") || StringUtils.containsIgnoreCase(symptom,"beauty")){
-            return doctorRepo.findBySpeciality("Dermatology");
-        }
-        if(StringUtils.containsIgnoreCase(symptom,"bones")){
-            return doctorRepo.findBySpeciality("Orthopedic");
-        }
-        return "There isn’t any doctor present at your location for your symptom";
+
+        return "There isn't any doctor present at your location for your symptom";
     }
+
 
     public static boolean isCityExist(String cityName){
         for(City city: City.values()){
